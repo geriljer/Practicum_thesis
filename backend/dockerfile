@@ -15,7 +15,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o momo-store ./cmd/api
 # Шаг релиза
 FROM alpine:latest
 
-#ARG VERSION
+ARG VERSION
 
 WORKDIR /app
 

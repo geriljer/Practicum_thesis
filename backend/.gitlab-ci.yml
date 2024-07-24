@@ -2,11 +2,16 @@ stages:
   - build
   - test
   - release 
-  - deploy  
+    #- deploy  
+
+variables:    #set variabled for pipeline
+  VERSION: 1-0-${CI_PIPELINE_ID}   ##set_version_per_pipelineID
+  GOPATH: ${CI_PROJECT_DIR}/go
+  GO111MODULE: on
 
 cache:
   paths:
-    - ${CI_PROJECT_DIR}/.m2/repository
+    - ${CI_PROJECT_DIR}/go/pkg/mod
 
 build-backend-code-job:
   stage: build
@@ -19,7 +24,7 @@ build-backend-code-job:
       --context "${CI_PROJECT_DIR}/backend"
       --dockerfile "${CI_PROJECT_DIR}/backend/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}/momo-backend:$CI_COMMIT_SHA"
-      #--build-arg VERSION=$VERSION
+      --build-arg VERSION=$VERSION
       --cache=true
 
 spotbugs-sast:
@@ -37,6 +42,11 @@ test-backend:
   stage: test
   image: golang:1.19
   script:
+    - ls -la
+    - mkdir -p ${GOPATH}/src/${CI_PROJECT_NAMESPACE}
+    - ln -s ${CI_PROJECT_DIR} ${GOPATH}/src/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}
+    - cd ${GOPATH}/src/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/backend
+    - go mod download
     - go test -v ./...
 
 sonar-backend-sast:
@@ -64,7 +74,7 @@ sonar-backend-sast:
     - echo SONAR_LOGIN="$SONAR_LOGIN"
     - echo SONAR_PROJECT_NAME="$SONAR_PROJECT_NAME"
     - cd backend/
-    - go test -v ./...
+      #- go test -v ./...
     - sonar-scanner -Dsonar.projectKey="$SONAR_PROJECT_KEY_BACK" -Dsonar.sources=. -Dsonar.host.url="$SONARQUBE_URL" -Dsonar.login="$SONAR_LOGIN" -Dsonar.projectName="$SONAR_PROJECT_NAME" -Dsonar.tests=./ -Dsonar.test.inclusions="**/*_test.go" -Dsonar.go.coverage.reportPaths=coverage.out -Dsonar.qualitygate.wait=true
   needs:
     - build-backend-code-job
@@ -81,4 +91,3 @@ upload-backend:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - crane tag $CI_REGISTRY_IMAGE/momo-backend:$CI_COMMIT_SHA $VERSION
-

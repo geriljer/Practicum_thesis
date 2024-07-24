@@ -2,11 +2,15 @@ stages:
   - build
   - test
   - release  
-  - deploy  
+    #- deploy  
+
+variables:   ##set version per pipe ID
+  VERSION: 1-0-${CI_PIPELINE_ID}
 
 cache:
   paths:
-    - frontend/dist/frontend  #needed to be checked during the debugging
+    - frontend/node_modules
+    - frontend/dist/  #needed to be checked during the debugging
 
 build-frontend-code-job:
   stage: build
@@ -19,7 +23,7 @@ build-frontend-code-job:
       --context "${CI_PROJECT_DIR}/frontend"
       --dockerfile "${CI_PROJECT_DIR}/frontend/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}/momo-frontend:$CI_COMMIT_SHA"
-      #--build-arg VERSION=$VERSION
+      --build-arg VERSION=$VERSION
       --cache=true
 
 sonarqube-sast:
@@ -66,28 +70,4 @@ upload-frontend-release:
   script:
     - crane tag $CI_REGISTRY_IMAGE/momo-frontend:$CI_COMMIT_SHA $VERSION
 
-deploy-frontend:
-  stage: deploy
-  needs:
-    - upload-frontend-release
-  image: docker:24.0.7-alpine3.19
-  environment:
-    name: production/frontend
-  when: manual
-    #  before_script:
-    # - apk add docker-cli-compose openssh-client bash
-    # - eval $(ssh-agent -s)
-    #    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    #    - mkdir -p ~/.ssh
-    #    - chmod 600 ~/.ssh
-    #    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
-    #    - chmod 644 ~/.ssh/known_hosts
-    #    - docker context create remote --description "remote ssh" --docker "host=ssh://student@${DEV_HOST}"
-  script:
-    - echo "deploy stage"
-    #    - echo "VERSION=${VERSION}" >> deploy.env
-      #    - echo "REPORTS_MONGODB_URI="mongodb://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_HOST}:27018/${MONGO_DATABASE}?tls=true"" >> deploy.env
-      #    - echo "REPORT_PATH=${REPORT_PATH}" >> deploy.env
-      #    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-      #   - docker --context remote compose --env-file deploy.env up frontend -d --pull "always" --force-recreate
 
