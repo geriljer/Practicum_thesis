@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  momo-frontend:
+    image: momo-front:latest
+    container_name: momo-front
+    environment:
+      VIRTUAL_HOST: momo-front
+      VIRTUAL_PORT: 8081
+      restart: always
+    ports:
+      - "82:80"
+    networks:
+      - momo-store
+
+  momo-backend:
+    image: momo-backend:latest
+    container_name: momo-backend
+    environment:
+      VIRTUAL_HOST: momo-backend
+      VIRTUAL_PORT: 8081
+      restart: always
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    ports:
+      - "8081:8081"
+    networks:
+      - momo-store
+
+networks:
+  momo-store:
+    driver: bridge
+

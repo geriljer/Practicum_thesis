@@ -1,0 +1,93 @@
+stages:
+  - build
+  - test
+  - release  
+  - deploy  
+
+cache:
+  paths:
+    - frontend/dist/frontend  #needed to be checked during the debugging
+
+build-frontend-code-job:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:v1.9.0-debug
+    entrypoint: [""]
+  # переменные CI_REGISTRY_USER, CI_REGISTRY_PASSWORD, CI_REGISTRY генерятся Гитлабом, их задавать не надо
+  script:
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}/frontend"
+      --dockerfile "${CI_PROJECT_DIR}/frontend/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}/momo-frontend:$CI_COMMIT_SHA"
+      #--build-arg VERSION=$VERSION
+      --cache=true
+
+sonarqube-sast:
+  stage: test
+  only:
+    changes:
+      - frontend/**/*
+  needs:
+    - build-frontend-code-job
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - echo SONARQUBE_URL="$SONARQUBE_URL" #needed to be added to CICD variables
+    - echo SONAR_PROJECT_KEY_FRONT="$SONAR_PROJECT_KEY_FRONT" #needed to be created in SonarQube
+    - echo SONAR_LOGIN="$SONAR_LOGIN" #needed to be added to CICD variables
+    - sonar-scanner -Dsonar.qualitygate.wait=true -Dsonar.projectKey="$SONAR_PROJECT_KEY_FRONT" -Dsonar.sources=frontend/src -Dsonar.host.url="$SONARQUBE_URL" -Dsonar.login="$SONAR_LOGIN"
+  
+gitlab-sast:   ##chapter4
+  stage: test
+  needs:
+    - build-frontend-code-job
+  trigger:
+    include:
+      - template: Security/SAST.gitlab-ci.yml
+
+upload-frontend-release:
+  variables:
+    GIT_STRATEGY: none
+  image:
+    name: gcr.io/go-containerregistry/crane:debug
+    entrypoint: [ "" ]
+  cache: [ ]
+  stage: release
+  before_script:
+    - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - crane tag $CI_REGISTRY_IMAGE/momo-frontend:$CI_COMMIT_SHA $VERSION
+
+deploy-frontend:
+  stage: deploy
+  needs:
+    - upload-frontend-release
+  image: docker:24.0.7-alpine3.19
+  environment:
+    name: production/frontend
+  when: manual
+    #  before_script:
+    # - apk add docker-cli-compose openssh-client bash
+    # - eval $(ssh-agent -s)
+    #    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    #    - mkdir -p ~/.ssh
+    #    - chmod 600 ~/.ssh
+    #    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    #    - chmod 644 ~/.ssh/known_hosts
+    #    - docker context create remote --description "remote ssh" --docker "host=ssh://student@${DEV_HOST}"
+  script:
+    - echo "deploy stage"
+    #    - echo "VERSION=${VERSION}" >> deploy.env
+      #    - echo "REPORTS_MONGODB_URI="mongodb://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_HOST}:27018/${MONGO_DATABASE}?tls=true"" >> deploy.env
+      #    - echo "REPORT_PATH=${REPORT_PATH}" >> deploy.env
+      #    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+      #   - docker --context remote compose --env-file deploy.env up frontend -d --pull "always" --force-recreate
+
