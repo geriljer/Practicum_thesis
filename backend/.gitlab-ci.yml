@@ -109,6 +109,5 @@ upload-backend-image:
   only:
     changes:
       - backend/**/*
-  rules:
-    - if: '$CI_COMMIT_BRANCH'
+  
 
