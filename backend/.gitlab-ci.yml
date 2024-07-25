@@ -20,10 +20,10 @@ build-backend-code-job:
     entrypoint: [""]
   # переменные CI_REGISTRY_USER, CI_REGISTRY_PASSWORD, CI_REGISTRY генерятся Гитлабом, их задавать не надо
   script:
-    - cd backend
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}/backend"
-      --dockerfile "${CI_PROJECT_DIR}/backend/Dockerfile"
+      #--dockerfile "${CI_PROJECT_DIR}/backend/Dockerfile"
+      --dockerfile "Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}/momo-backend:$CI_COMMIT_SHA"
       --build-arg VERSION=$VERSION
       --cache=true
