@@ -22,7 +22,7 @@ build-backend-code-job:
   script:
     - echo "${CI_PROJECT_DIR}"
     - ls -la "${CI_PROJECT_DIR}/backend"
-    - /kaniko/executor --context "${CI_PROJECT_DIR}/backend" --dockerfile "backend/Dockerfile" --destination "${CI_REGISTRY_IMAGE}/momo-backend:$CI_COMMIT_SHA" --build-arg VERSION=$VERSION --cache=true
+    - /kaniko/executor --context "${CI_PROJECT_DIR}/backend" --dockerfile "${CI_PROJECT_DIR}/backend/dockerfile" --destination "${CI_REGISTRY_IMAGE}/momo-backend:$CI_COMMIT_SHA" --build-arg VERSION=$VERSION --cache=true
 
 spotbugs-sast:
   stage: test
