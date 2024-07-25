@@ -68,7 +68,7 @@ sonar-backend-sast:
     - unzip sonar-scanner.zip
     - export PATH=$PATH:$(pwd)/sonar-scanner-4.6.2.2472-linux/bin
   script:
-    - echo SONAR_PROJECT_KEY="$SONAR_PROJECT_KEY"
+    #- echo SONAR_PROJECT_KEY="$SONAR_PROJECT_KEY"
     - echo SONARQUBE_URL="$SONARQUBE_URL"
     - echo SONAR_PROJECT_KEY_BACK="$SONAR_PROJECT_KEY_BACK"
     - echo SONAR_LOGIN="$SONAR_LOGIN"
