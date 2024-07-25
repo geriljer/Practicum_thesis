@@ -16,7 +16,7 @@ class Pagination<T> {
     this.results = data.results.map((item: any) => new resource(item));
   }
 
-  static empty<T>(resource: new(data: any) => T) {
+  static empty<T>(resource: new(data: any) => T): Pagination<T> {
     return new Pagination({
       count: 0,
       total_pages: 0,
