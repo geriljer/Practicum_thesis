@@ -45,8 +45,6 @@ export default defineComponent({
     font-size: 12px;
     font-weight: bold;
     padding: 1px;
-
-    color: black;
     
   }
 </style>
