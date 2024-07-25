@@ -40,9 +40,9 @@
       />
     </div>
     <div class="d-flex justify-content-end">
-      <Center v-if="loading" class="mx-2">
+      <div v-if="loading" class="mx-2 d-flex align-items-center">
         <Spinner size="2rem" thickness="0.75rem" />
-      </Center>
+      </div>
       <button
         type="button" 
         class="btn btn-secondary me-3" 
