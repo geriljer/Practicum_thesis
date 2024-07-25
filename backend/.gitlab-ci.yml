@@ -60,10 +60,8 @@ sonar-backend-sast:
     paths:
       - .sonar/cache
   before_script:
-    - apt-get update && apt-get install -y wget gnupg2
-    - wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor -o /usr/share/keyrings/adoptium.gpg
-    - echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb/ lts main" | tee /etc/apt/sources.list.d/adoptium.list
-    - apt-get update && apt-get install -y temurin-11-jdk
+    - apt-get update
+    - apt-get install -y openjdk-11-jdk unzip
     - curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
     - unzip sonar-scanner.zip
     - export PATH=$PATH:$(pwd)/sonar-scanner-4.6.2.2472-linux/bin
