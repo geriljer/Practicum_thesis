@@ -21,8 +21,8 @@ build-backend-code-job:
   # переменные CI_REGISTRY_USER, CI_REGISTRY_PASSWORD, CI_REGISTRY генерятся Гитлабом, их задавать не надо
   script:
     - echo "${CI_PROJECT_DIR}"
-    - ls -la "${CI_PROJECT_DIR}"
-    - /kaniko/executor --context "${CI_PROJECT_DIR}/backend" --dockerfile "${CI_PROJECT_DIR}/backend/Dockerfile" --destination "${CI_REGISTRY_IMAGE}/momo-backend:$CI_COMMIT_SHA" --build-arg VERSION=$VERSION --cache=true
+    - ls -la "${CI_PROJECT_DIR}/backend"
+    - /kaniko/executor --context "${CI_PROJECT_DIR}/backend" --dockerfile "backend/Dockerfile" --destination "${CI_REGISTRY_IMAGE}/momo-backend:$CI_COMMIT_SHA" --build-arg VERSION=$VERSION --cache=true
 
 spotbugs-sast:
   stage: test
