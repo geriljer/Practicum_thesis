@@ -102,7 +102,7 @@ upload-backend-image:
   variables:
     DOCKER_DRIVER: overlay2
   before_script:
-    - docker login -u $NEXUS_REPO_USER -p $NEXUS_REPO_PASS $NEXUS_REPO_URL
+    - docker login -u $NEXUS_REPO_USER --password-stdin $NEXUS_REPO_URL
   script:
     - docker tag ${CI_REGISTRY_IMAGE}/momo-backend:$CI_COMMIT_SHA $NEXUS_REPO_URL/repository/$NEXUS_REPO_BACKEND_NAME/momo-backend:$CI_COMMIT_SHA
     - docker push $NEXUS_REPO_URL/repository/$NEXUS_REPO_BACKEND_NAME/$VERSION/momo-backend:$CI_COMMIT_SHA
