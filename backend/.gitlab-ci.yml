@@ -5,9 +5,9 @@ stages:
     #- deploy  
 
 variables:    #set variabled for pipeline
-  VERSION: "1-0-${CI_PIPELINE_ID}"   ##set_version_per_pipelineID
-  GOPATH: "${CI_PROJECT_DIR}/go"
-  GO111MODULE: on
+  VERSION: 1-0-${CI_PIPELINE_ID}   ##set_version_per_pipelineID
+  GOPATH: ${CI_PROJECT_DIR}/go
+  GO111MODULE: "on"
 
 cache:
   paths:
