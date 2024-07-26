@@ -1,0 +1,45 @@
+# Шаг сборки
+FROM golang:1.19-alpine AS builder
+
+# Install gcc for CGO
+RUN apk update && apk add --no-cache gcc musl-dev
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . .
+
+#RUN go test -v ./... ##separately tested in pipeline
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o momo-store ./cmd/api
+
+# Шаг релиза
+FROM alpine:latest
+
+ARG VERSION
+
+WORKDIR /app
+
+COPY --from=builder /app/momo-store /app/momo-store
+
+#COPY --from=builder /app/certs /app/certs
+
+# Добавление непривилегированного пользователя для запуска приложения
+RUN addgroup --system appuser && adduser -S -s /bin/false -G appuser appuser -D -H
+
+# Устанавливаем владельца и права доступа на директорию и файлы
+RUN chown -R appuser:appuser /app/momo-store
+
+USER appuser
+
+# Порт, на котором будет работать приложение
+EXPOSE 8081
+
+# Команда запуска приложения
+ENTRYPOINT ["/app/momo-store"]
+
+
+
