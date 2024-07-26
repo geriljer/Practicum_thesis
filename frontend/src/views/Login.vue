@@ -5,13 +5,10 @@
       <Alert v-if="error" v-model="error" class="alert-danger"/>
     </div>
 
-    <Center>
-
-      <Spinner 
-        v-if="loading"
-        size="8rem"
-        thickness="1.25rem"
-      />
+    <div class="d-flex justify-content-center align-items-center flex-grow-1">
+      <div v-if="loading">
+        <Spinner size="8rem" thickness="1.25rem" />
+      </div>
 
       <div v-else class="card d-inline-block text-start">
         <form @submit.prevent="login">
@@ -38,7 +35,7 @@
         </form>
       </div>
 
-    </Center>
+    </div>
 
     <div></div>
   </div>

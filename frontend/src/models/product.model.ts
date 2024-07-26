@@ -13,5 +13,5 @@ export default class ProductModel {
     this.price = data.price;
     this.description = data.description;
     this.image = data.image;
-  };
+  }
 }

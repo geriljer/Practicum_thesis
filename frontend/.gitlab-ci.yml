@@ -1,0 +1,86 @@
+stages:
+  - build
+  - test
+  - release  
+    #- deploy  
+
+variables:   ##set version per pipe ID
+  VERSION: 1-0-${CI_PIPELINE_ID}
+
+cache:
+  paths:
+    - frontend/node_modules
+    - frontend/dist/  #needed to be checked during the debugging
+
+build-frontend-code-job:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:v1.9.0-debug
+    entrypoint: [""]
+  # переменные CI_REGISTRY_USER, CI_REGISTRY_PASSWORD, CI_REGISTRY генерятся Гитлабом, их задавать не надо
+  script:
+    - /kaniko/executor --context "${CI_PROJECT_DIR}/frontend" --dockerfile "${CI_PROJECT_DIR}/frontend/dockerfile" --destination "${CI_REGISTRY_IMAGE}/momo-frontend:$CI_COMMIT_SHA" --build-arg VERSION=$VERSION --cache=true
+
+sonarqube-sast:
+  stage: test
+  only:
+    changes:
+      - frontend/**/*
+  needs:
+    - build-frontend-code-job
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - echo SONARQUBE_URL="$SONARQUBE_URL" #needed to be added to CICD variables
+    - echo SONAR_PROJECT_KEY_FRONT="$SONAR_PROJECT_KEY_FRONT" #needed to be created in SonarQube
+    - echo SONAR_LOGIN="$SONAR_LOGIN" #needed to be added to CICD variables
+    - sonar-scanner -Dsonar.qualitygate.wait=true -Dsonar.projectKey="$SONAR_PROJECT_KEY_FRONT" -Dsonar.sources=frontend/src -Dsonar.host.url="$SONARQUBE_URL" -Dsonar.login="$SONAR_LOGIN"
+  
+gitlab-sast:   ##chapter4
+  stage: test
+  needs:
+    - build-frontend-code-job
+  trigger:
+    include:
+      - template: Security/SAST.gitlab-ci.yml
+
+upload-frontend-release:
+  variables:
+    GIT_STRATEGY: none
+  image:
+    name: gcr.io/go-containerregistry/crane:debug
+    entrypoint: [ "" ]
+  cache: [ ]
+  stage: release
+  before_script:
+    - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - crane tag $CI_REGISTRY_IMAGE/momo-frontend:$CI_COMMIT_SHA $VERSION
+
+      #upload-frontend-image:
+      #  stage: release
+      #  needs:
+      #    - build-frontend-code-job
+      #    - sonarqube-sast
+      #    - gitlab-sast
+      #  image: docker:20.10
+      #  services:
+      #    - docker:dind
+      #  variables:
+      #    DOCKER_DRIVER: overlay2
+      #  before_script:
+      #    - echo "${NEXUS_REPO_PASS}" | docker login -u $NEXUS_REPO_USER --password-stdin $NEXUS_FRONT_URL
+      #  script:
+      #    - docker tag ${CI_REGISTRY_IMAGE}/momo-bfrontend:$CI_COMMIT_SHA $NEXUS_REPO_URL/repository/$NEXUS_REPO_FRONTEND_NAME/momo-frontend:$CI_COMMIT_SHA
+      #    - docker push $NEXUS_REPO_URL/repository/$NEXUS_REPO_FRONTEND_NAME/$VERSION/momo-frontend:$CI_COMMIT_SHA
+      #  only:
+      #    changes:
+      #      - frontend/**/*
