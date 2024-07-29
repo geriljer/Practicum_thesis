@@ -3,9 +3,9 @@ version: '3.8'
 services:
   momo-frontend:
     image: ${CI_REGISTRY_IMAGE}/momo-frontend:${VERSION}
-    container_name: momo-frontend
+    container_name: frontend
     environment:
-      VIRTUAL_HOST: momo-frontend
+      VIRTUAL_HOST: frontend
       VIRTUAL_PORT: 8081
       restart: always
     ports:
@@ -15,9 +15,9 @@ services:
 
   momo-backend:
     image: ${CI_REGISTRY_IMAGE}/momo-backend:${VERSION}
-    container_name: momo-backend
+    container_name: backend
     environment:
-      VIRTUAL_HOST: momo-backend
+      VIRTUAL_HOST: backend
       VIRTUAL_PORT: 8081
       restart: always
     healthcheck:
