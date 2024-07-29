@@ -65,6 +65,7 @@ upload-frontend-release:
   script:
     - crane tag $CI_REGISTRY_IMAGE/momo-frontend:$CI_COMMIT_SHA $VERSION
 
+
       #upload-frontend-image:
       #  stage: release
       #  needs:
