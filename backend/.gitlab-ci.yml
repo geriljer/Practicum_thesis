@@ -90,7 +90,16 @@ upload-backend:
   script:
     - crane tag $CI_REGISTRY_IMAGE/momo-backend:$CI_COMMIT_SHA $VERSION
 
-
+push-to-nexus:
+  stage: release
+  image: gcr.io/go-containerregistry/crane:debug
+  script:
+    - crane auth login -u $NEXUS_REPO_USER -p $NEXUS_REPO_PASS $NEXUS_REGISTRY
+    - crane cp $CI_REGISTRY_IMAGE/momo-backend:$CI_COMMIT_SHA $NEXUS_REGISTRY/momo-backend:$VERSION
+      #  only:
+      #    - master
+      #
+      #    
       #upload-backend-image:
       #  stage: release
       #  needs:
