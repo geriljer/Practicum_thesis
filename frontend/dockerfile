@@ -16,7 +16,7 @@ COPY . .
 #  Собираем приложение для production с указанием переменной окружения VUE_APP_API_URL
 ENV NODE_ENV=production
 # 'localhost' should be changed to the resolveable FQDN of a real host where nginx is deployed to be able to proxy requests to backenOAd
-ENV VUE_APP_API_URL=http://51.250.0.162:8081
+ENV VUE_APP_API_URL=http://alexlevashov.devops-practicum.ru:8081
 RUN npm run build
 
 # Второй этап: настраиваем Nginx для обслуживания статического содержимого
