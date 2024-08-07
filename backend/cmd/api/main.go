@@ -27,7 +27,7 @@ func main() {
 }
 
 func run() error {
-	lis, err := net.Listen("tcp", ":8081")
+	lis, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func run() error {
 
 	errChan := make(chan error, 1)
 	go func() {
-		logger.Log.Info("starting HTTP server", zap.String("address", ":8081"))
+		logger.Log.Info("starting HTTP server", zap.String("address", ":8080"))
 		if err := srv.Serve(lis); err != nil {
 			errChan <- fmt.Errorf("error serving HTTP: %w", err)
 		}
