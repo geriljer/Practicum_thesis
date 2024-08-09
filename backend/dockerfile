@@ -36,7 +36,7 @@ RUN chown -R appuser:appuser /app/momo-store
 USER appuser
 
 # Порт, на котором будет работать приложение
-EXPOSE 8080
+EXPOSE 8081
 
 # Команда запуска приложения
 ENTRYPOINT ["/app/momo-store"]
