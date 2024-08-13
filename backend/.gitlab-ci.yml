@@ -92,7 +92,7 @@ upload-backend:
     - crane tag $CI_REGISTRY_IMAGE/momo-backend:$CI_COMMIT_SHA $VERSION
 
 upload-to-nexus:
-  stage: upload
+  stage: release
   image: curlimages/curl:7.76.1
   script:
     - curl -v -u "$NEXUS_REPO_USER:$NEXUS_REPO_PASS" --upload-file frontend-artifacts.tar.gz "${NEXUS_REPO_NAME}/${VERSION}/frontend-artifacts-$VERSION.tar.gz"
