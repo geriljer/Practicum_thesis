@@ -97,7 +97,7 @@ upload-to-nexus:
   script:
     - curl -v -u "$NEXUS_REPO_USER:$NEXUS_REPO_PASS" --upload-file frontend-artifacts.tar.gz "${NEXUS_REPO_NAME}/${VERSION}/frontend-artifacts-$VERSION.tar.gz"
   dependencies:
-    - build-frontend-code-job
+    - build-backend-code-job
       #only:
       #  - master
 
