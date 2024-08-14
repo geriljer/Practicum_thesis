@@ -21,6 +21,21 @@ build-frontend-code-job:
   script:
     - /kaniko/executor --context "${CI_PROJECT_DIR}/frontend" --dockerfile "${CI_PROJECT_DIR}/frontend/dockerfile" --destination "${CI_REGISTRY_IMAGE}/momo-frontend:$CI_COMMIT_SHA" --build-arg VERSION=$VERSION --cache=true
 
+build-artifacts:
+  stage: build
+  image: node:16
+  script:
+    - cd frontend
+    - npm install
+    - npm run build
+    - tar -czvf momo-frontend-artifacts.tar.gz -C dist .
+    - pwd
+    - ls -la
+    - mv momo-frontend-artifacts.tar.gz /builds/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/
+  artifacts:
+    paths:
+      - momo-frontend-artifacts.tar.gz
+
 sonarqube-sast:
   stage: test
   only:
@@ -65,6 +80,16 @@ upload-frontend-release:
   script:
     - crane tag $CI_REGISTRY_IMAGE/momo-frontend:$CI_COMMIT_SHA $VERSION
 
+upload-frontend-nexus:
+  stage: release
+  image: curlimages/curl:latest
+  script:
+    - la -la
+    - curl -u $NEXUS_USER:$NEXUS_PASSWORD --upload-file momo-frontend-artifacts.tar.gz "${NEXUS_REPO_NAME}/${VERSION}/momo-frontend-artifacts-$VERSION.tar.gz"
+  dependencies:
+    - build-artifacts
+      #only:
+      #    - master
 
       #upload-frontend-image:
       #  stage: release
