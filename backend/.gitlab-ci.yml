@@ -108,7 +108,7 @@ upload-to-nexus:
   stage: release
   image: curlimages/curl:7.76.1
   script:
-    - curl -v -u "$NEXUS_REPO_USER:$NEXUS_REPO_PASS" --upload-file frontend-artifacts.tar.gz "${NEXUS_REPO_NAME}/${VERSION}/frontend-artifacts-$VERSION.tar.gz"
+    - curl -v -u "$NEXUS_REPO_USER:$NEXUS_REPO_PASS" --upload-file momo-backend-artifacts.tar.gz "${NEXUS_REPO_NAME}/${VERSION}/backend-artifacts-$VERSION.tar.gz"
   dependencies:
     - build-artifacts
       #only:
