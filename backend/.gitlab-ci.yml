@@ -22,7 +22,9 @@ build-artifacts:
     - cd backend
     - go mod download
     - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /app/momo-store ./cmd/api
+    - cd /app
     - tar -czvf momo-backend-artifacts.tar.gz -C /app momo-store
+    - ls -la
   artifacts:
     paths:
       - momo-backend-artifacts.tar.gz
@@ -108,9 +110,9 @@ upload-to-nexus:
   stage: release
   image: curlimages/curl:7.76.1
   script:
-    - ll
+    - ls -la
     - cd /app
-    - ll
+    - la -la
     - curl -v -u "$NEXUS_REPO_USER:$NEXUS_REPO_PASS" --upload-file momo-backend-artifacts.tar.gz "${NEXUS_REPO_NAME}/${VERSION}/backend-artifacts-$VERSION.tar.gz"
   dependencies:
     - build-artifacts
