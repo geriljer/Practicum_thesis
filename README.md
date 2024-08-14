@@ -28,41 +28,41 @@ server {
 Build frontend.
 
 Stage1. Build docker image:
-# Use an official Node.js runtime as a parent image
+#Use an official Node.js runtime as a parent image
 FROM node:16 as build-stage
 
-# Set the working directory
+#Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+#Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
+#Install dependencies
 RUN npm install
 
-# Копируем все остальные файлы проекта в текущую рабочую директорию контейнера
+#Копируем все остальные файлы проекта в текущую рабочую директорию контейнера
 COPY . .
 
-#  Собираем приложение для production с указанием переменной окружения VUE_APP_API_URL
+#Собираем приложение для production с указанием переменной окружения VUE_APP_API_URL
 ENV NODE_ENV=production
-# 'localhost' should be changed to the resolveable FQDN of a real host where nginx is deployed to be able to proxy requests to backend
+#'localhost' should be changed to the resolveable FQDN of a real host where nginx is deployed to be able to proxy requests to backend
 ENV VUE_APP_API_URL=http://momo-store.devops-practicum.ru:8081
 RUN npm run build
 
 ----------------------------------
 Stage2: configure nginx:
-# Второй этап: настраиваем Nginx для обслуживания статического содержимого
+#Второй этап: настраиваем Nginx для обслуживания статического содержимого
 FROM nginx:stable-alpine
 ARG VERSION
 WORKDIR /app
 
-# Копируем собранное приложение из предыдущего этапа в рабочую директорию Nginx
+#Копируем собранное приложение из предыдущего этапа в рабочую директорию Nginx
 COPY --from=build-stage /app/dist ./momo-store
 
-# Copy the custom Nginx configuration file
+#Copy the custom Nginx configuration file
 COPY default.conf /etc/nginx/conf.d/default.conf
 
-# Конфигурируем Nginx для обслуживания статического содержимого
+#Конфигурируем Nginx для обслуживания статического содержимого
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 
@@ -72,10 +72,10 @@ CMD ["nginx", "-g", "daemon off;"]
 ## Backend. Build Go binary in Docker image
 
 Stage1. Build docker image
-# Шаг сборки
+#Шаг сборки
 FROM golang:1.19-alpine AS builder
 
-# Install gcc for CGO
+#Install gcc for CGO
 RUN apk update && apk add --no-cache gcc musl-dev
 
 WORKDIR /app
@@ -90,7 +90,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o momo-store ./cmd/api
 
 ----------------------
 Stage2. Run backend as appuser.
-# Шаг релиза
+#Шаг релиза
 FROM alpine:latest
 
 ARG VERSION
@@ -101,23 +101,23 @@ COPY --from=builder /app/momo-store /app/momo-store
 
 #COPY --from=builder /app/certs /app/certs
 
-# Добавление непривилегированного пользователя для запуска приложения
+#Добавление непривилегированного пользователя для запуска приложения
 RUN addgroup --system appuser && adduser -S -s /bin/false -G appuser appuser -D -H
 
-# Устанавливаем владельца и права доступа на директорию и файлы
+#Устанавливаем владельца и права доступа на директорию и файлы
 RUN chown -R appuser:appuser /app/momo-store
 
 USER appuser
 
-# Порт, на котором будет работать приложение
+#Порт, на котором будет работать приложение
 EXPOSE 8081
 
-# Команда запуска приложения
+#Команда запуска приложения
 ENTRYPOINT ["/app/momo-store"]
 
 ======================================================================================
 
-##Automatization in Gitlab
+## Automatization in Gitlab
 
 Build, test and release upload are automated in gitlab.
 Repository: https://gitlab.praktikum-services.ru/std-026-53/momo-store.git
@@ -137,7 +137,7 @@ backend-artifacts-1-0-1448758.tar.gz	Wed Aug 14 06:56:04 UTC 2024	7011620
 
 =======================================================================================
 
-##Testing:
+## Testing:
 Sonarqube frontend Passed:
 https://sonarqube.praktikum-services.ru/dashboard?id=26_AlexLevashov_momo_front
 
@@ -148,7 +148,7 @@ Gitlab SAST Passed
 
 =====================================================================================
 
-##Infrastructure.
+## Infrastructure.
 
 Deployed a separate Ubuntu VM in YC with Public IP.
 
@@ -179,7 +179,7 @@ Installed Prometheus Grafana: https://yandex.cloud/ru/docs/managed-kubernetes/op
 
 ========================================================================================
 
-##Deploy.
+## Deploy.
 
 Created Infrastructure repository:
 https://gitlab.praktikum-services.ru/std-026-53/momo-infrastructure/
@@ -269,12 +269,19 @@ deploy-helm:
 
 Must be merged after project is completed.
 
+------------------------------------------------------
+Helm releases are stored in Nexus repo: http://nexus.praktikum-services.tech/repository/alexlevashov-helm-026/
+Index of /momo-store
+Name	Last Modified	Size	Description
+Parent Directory
+0.0.1
+0.1.0
 
 Deploy works and application is available: http://momo-store.gitlab-practicum.ru 
 
 =======================================================
 
-##Monitoring
+## Monitoring
 
 Use utilities available in Yandex Cloud: https://yandex.cloud/ru/docs/managed-kubernetes/metrics
 
