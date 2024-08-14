@@ -111,7 +111,7 @@ upload-to-nexus:
   image: curlimages/curl:7.76.1
   script:
     - ls -la
-    - cd /app
+    - cd /backend/app
     - la -la
     - curl -v -u "$NEXUS_REPO_USER:$NEXUS_REPO_PASS" --upload-file momo-backend-artifacts.tar.gz "${NEXUS_REPO_NAME}/${VERSION}/backend-artifacts-$VERSION.tar.gz"
   dependencies:
