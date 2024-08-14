@@ -20,8 +20,16 @@ build-backend-code-job:
     entrypoint: [""]
   # переменные CI_REGISTRY_USER, CI_REGISTRY_PASSWORD, CI_REGISTRY генерятся Гитлабом, их задавать не надо
   script:
+    - apk add --no-cache gcc musl-dev
+    - sudo mkdir -p /app
+    - cd backend
+    - go mod download
+    - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /app/momo-store ./cmd/api
     - /kaniko/executor --context "${CI_PROJECT_DIR}/backend" --dockerfile "${CI_PROJECT_DIR}/backend/dockerfile" --destination "${CI_REGISTRY_IMAGE}/momo-backend:$CI_COMMIT_SHA" --build-arg VERSION=$VERSION --cache=true
-    - tar -czvf frontend-artifacts.tar.gz frontend/dist
+    - tar -czvf backend-artifacts.tar.gz -C /app momo-store
+  artifacts:
+    paths:
+      - momo-backend-artifacts.tar.gz
 
 spotbugs-sast:
   stage: test
