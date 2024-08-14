@@ -85,25 +85,6 @@ upload-frontend-nexus:
     - curl -u $NEXUS_REPO_USER:$NEXUS_REPO_PASS --upload-file momo-frontend-artifacts.tar.gz "${NEXUS_REPO_NAME}/${VERSION}/momo-frontend-artifacts-$VERSION.tar.gz"
   dependencies:
     - build-artifacts
-      #only:
-      #    - master
+  only:
+    - main
 
-      #upload-frontend-image:
-      #  stage: release
-      #  needs:
-      #    - build-frontend-code-job
-      #    - sonarqube-sast
-      #    - gitlab-sast
-      #  image: docker:20.10
-      #  services:
-      #    - docker:dind
-      #  variables:
-      #    DOCKER_DRIVER: overlay2
-      #  before_script:
-      #    - echo "${NEXUS_REPO_PASS}" | docker login -u $NEXUS_REPO_USER --password-stdin $NEXUS_FRONT_URL
-      #  script:
-      #    - docker tag ${CI_REGISTRY_IMAGE}/momo-bfrontend:$CI_COMMIT_SHA $NEXUS_REPO_URL/repository/$NEXUS_REPO_FRONTEND_NAME/momo-frontend:$CI_COMMIT_SHA
-      #    - docker push $NEXUS_REPO_URL/repository/$NEXUS_REPO_FRONTEND_NAME/$VERSION/momo-frontend:$CI_COMMIT_SHA
-      #  only:
-      #    changes:
-      #      - frontend/**/*
