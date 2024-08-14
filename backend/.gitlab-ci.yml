@@ -1,8 +1,7 @@
 stages:
   - build
   - test
-  - release 
-    #- deploy  
+  - release   
 
 variables:    #set variabled for pipeline
   VERSION: 1-0-${CI_PIPELINE_ID}   ##set_version_per_pipelineID
@@ -19,19 +18,16 @@ build-artifacts:
   script:
     - apt-get update && apt-get install -y gcc musl-dev
     - mkdir -p /app
-    - ls -la
-    - pwd
     - cd backend
     - go mod download
     - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /app/momo-store ./cmd/api
     - cd /app
     - tar -czvf momo-backend-artifacts.tar.gz -C /app momo-store
-    - pwd
-    - ls -la
     - mv momo-backend-artifacts.tar.gz /builds/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/
   artifacts:
     paths:
       - momo-backend-artifacts.tar.gz
+      - ${CI_PROJECT_DIR}/go/pkg/mod
 
 build-backend-code-job:
   stage: build
@@ -57,7 +53,6 @@ test-backend:
   stage: test
   image: golang:1.19
   script:
-    - ls -la
     - mkdir -p ${GOPATH}/src/${CI_PROJECT_NAMESPACE}
     - ln -s ${CI_PROJECT_DIR} ${GOPATH}/src/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}
     - cd ${GOPATH}/src/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/backend
@@ -114,7 +109,6 @@ upload-to-nexus:
   stage: release
   image: curlimages/curl:7.76.1
   script:
-    - ls -la
     - curl -v -u "$NEXUS_REPO_USER:$NEXUS_REPO_PASS" --upload-file momo-backend-artifacts.tar.gz "${NEXUS_REPO_NAME}/${VERSION}/backend-artifacts-$VERSION.tar.gz"
   dependencies:
     - build-artifacts

@@ -2,7 +2,6 @@ stages:
   - build
   - test
   - release  
-    #- deploy  
 
 variables:   ##set version per pipe ID
   VERSION: 1-0-${CI_PIPELINE_ID}
@@ -29,12 +28,11 @@ build-artifacts:
     - npm install
     - npm run build
     - tar -czvf momo-frontend-artifacts.tar.gz -C dist .
-    - pwd
-    - ls -la
     - mv momo-frontend-artifacts.tar.gz /builds/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/
   artifacts:
     paths:
       - momo-frontend-artifacts.tar.gz
+      - frontend/dist/
 
 sonarqube-sast:
   stage: test
