@@ -28,7 +28,7 @@ build-artifacts:
     - tar -czvf momo-backend-artifacts.tar.gz -C /app momo-store
     - pwd
     - ls -la
-      #- mv momo-backend-artifacts.tar.gz /builds/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/
+    - mv momo-backend-artifacts.tar.gz /builds/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/
   artifacts:
     paths:
       - momo-backend-artifacts.tar.gz
