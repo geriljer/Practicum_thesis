@@ -137,7 +137,7 @@ backend-artifacts-1-0-1448758.tar.gz	Wed Aug 14 06:56:04 UTC 2024	7011620
 
 =======================================================================================
 
-Testing:
+##Testing:
 Sonarqube frontend Passed:
 https://sonarqube.praktikum-services.ru/dashboard?id=26_AlexLevashov_momo_front
 
@@ -148,7 +148,7 @@ Gitlab SAST Passed
 
 =====================================================================================
 
-Infrastructure.
+##Infrastructure.
 
 Deployed a separate Ubuntu VM in YC with Public IP.
 
@@ -180,6 +180,7 @@ Installed Prometheus Grafana: https://yandex.cloud/ru/docs/managed-kubernetes/op
 ========================================================================================
 
 ##Deploy.
+
 Created Infrastructure repository:
 https://gitlab.praktikum-services.ru/std-026-53/momo-infrastructure/
 
@@ -273,7 +274,7 @@ Deploy works and application is available: http://momo-store.gitlab-practicum.ru
 
 =======================================================
 
-Monitoring
+##Monitoring
 
 Use utilities available in Yandex Cloud: https://yandex.cloud/ru/docs/managed-kubernetes/metrics
 
