@@ -24,6 +24,9 @@ server {
     }
 }
 
+------------------------------
+Build frontend.
+
 Stage1. Build docker image:
 # Use an official Node.js runtime as a parent image
 FROM node:16 as build-stage
@@ -64,7 +67,10 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 
 ===========================================================================================
+
+
 ## Backend. Build Go binary in Docker image
+
 Stage1. Build docker image
 # Шаг сборки
 FROM golang:1.19-alpine AS builder
@@ -79,8 +85,6 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-
-#RUN go test -v ./... ##separately tested in pipeline
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o momo-store ./cmd/api
 
@@ -113,7 +117,172 @@ ENTRYPOINT ["/app/momo-store"]
 
 ======================================================================================
 
-Automatization in gitlab.
-https://gitlab.praktikum-services.ru/std-026-53/momo-store.git
+##Automatization in Gitlab
+
+Build, test and release upload are automated in gitlab.
+Repository: https://gitlab.praktikum-services.ru/std-026-53/momo-store.git
+
+Docker images are uploaded to docker registry gitlab via crane
+
+Artifacts are created in a separate job and uploaded to a Nexus Raw repository:
+Index of /1-0-1449796
+Name	Last Modified	Size	Description
+Parent Directory
+momo-frontend-artifacts-1-0-1449796.tar.gz	Wed Aug 14 16:07:52 UTC 2024	501630	
+
+Index of /1-0-1448758
+Name	Last Modified	Size	Description
+Parent Directory
+backend-artifacts-1-0-1448758.tar.gz	Wed Aug 14 06:56:04 UTC 2024	7011620
+
+=======================================================================================
+
+Testing:
+Sonarqube frontend Passed:
+https://sonarqube.praktikum-services.ru/dashboard?id=26_AlexLevashov_momo_front
+
+Sonarqube backend Passed:
+https://sonarqube.praktikum-services.ru/dashboard?id=26_AlexLevashov_momo_back
+
+Gitlab SAST Passed 
+
+=====================================================================================
+
+Infrastructure.
+
+Deployed a separate Ubuntu VM in YC with Public IP.
+
+Deployed VAULT in docker container via Unit file
+
+Deployed Minio Local S3 repository
+
+---------------------------------
+Purchased domain devops-practicum.ru
+
+----------------------------------
+Issued certificates for alev-node1-vm-1.devops-practicum.ru and momo-store.devops-practicum.ru
+
+-------------------------------------------------
+K8s cluster deployed in Yandex Cloud (step-by-step guide C:\DevOps\Практикум\Дипломный проект\YC_Managed_Cluster)
+Attempts to deploy hosted k8s cluster were not successful and LoadBalancer couldn't occupy any Public IP
+>deployed Managed service for Kubernetes in YC
+
+Configured port-forwarding for LoadBalancer: 
+create values.yml to enable port-forward for backend: https://yandex.cloud/ru/docs/managed-kubernetes/operations/create-load-balancer-with-ingress-nginx#port-forwarding
+tcp: {8081: "default/backend:8081"}
+portNamePrefix: "momo"
+
+Installed Loki: https://yandex.cloud/ru/docs/managed-kubernetes/operations/applications/loki
+
+Installed Prometheus Grafana: https://yandex.cloud/ru/docs/managed-kubernetes/operations/applications/prometheus-operator?utm_referrer=https%3A%2F%2Fyandex.cloud%2Fru%2Fdocs%2Fapplication-load-balancer%2Fconcepts%2Fapplication-load-balancer
+
+
+========================================================================================
+
+##Deploy.
+Created Infrastructure repository:
+https://gitlab.praktikum-services.ru/std-026-53/momo-infrastructure/
+
+Collected pictures in a separate folder
+
+-----------------------------------------------------------
+Performed deploy in Kubernetes. Created a separate branch. After project is completed must be merged to main.
+Kubernetes pipeline:
+stages:
+  - deploy
+
+deploy-kubernetes:
+  stage: deploy
+  image: docker:24.0.7-alpine3.19
+  before_script:
+    - apk update && apk add --no-cache docker-cli-compose openssh-client bash curl gettext
+    - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    - install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY"| tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 600 ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - mkdir -p ~/.kube
+    - echo "$KUBECONFIG_BASE64" | base64 -d >> ~/.kube/config
+    - kubectl config use-context momo-store-context
+      #- kubectl config use-context k8s-cluster
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - kubectl apply -f kubernetes/backend/service.yml --namespace default
+    - kubectl apply -f kubernetes/backend/vpa.yml --namespace default
+    - kubectl apply -f kubernetes/backend/deployment.yml --namespace default
+    - kubectl apply -f kubernetes/backend/secrets.yml --namespace default
+    - kubectl wait --for=condition=available --timeout=60s deployment/backend --namespace default
+    - kubectl apply -f kubernetes/frontend/configmap.yml --namespace default
+    - kubectl apply -f kubernetes/frontend/service.yml --namespace default
+    - kubectl apply -f kubernetes/frontend/deployment.yml --namespace default
+    - kubectl wait --for=condition=available --timeout=60s deployment/frontend --namespace default
+    - kubectl apply -f kubernetes/frontend/ingress.yml --namespace default
+    - kubectl wait --for=condition=available --timeout=60s deployment/backend --namespace default
+  after_script:
+    - rm ~/.kube/config
+  rules:
+    - changes:
+      - kubernetes/**/*
+  environment:
+    name: production/backend
+    url: http://momo-store.devops-practicum.ru:80
+    auto_stop_in: 1h
+  rules:
+    - when: manual
+
+-----------------------------------------------------------
+Configured helm chart and performed deploy via helm chart:
+Helm pipeline:
+
+deploy-helm:
+  stage: deploy
+  image: alpine/helm:3.9.4
+    #image: vault:1.11.3
+  before_script:
+    # Установка репозитория Helm из Nexus
+    - helm repo add my-repo ${HELM_REPO} --username ${NEXUS_USER} --password ${NEXUS_PASS}
+    - helm repo update
+    # Kubectl install
+    - apk update && apk add --no-cache curl
+    - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    - install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+    - mkdir -p ~/.kube
+    - echo "$KUBECONFIG_BASE64" | base64 -d >> ~/.kube/config
+    - chmod 600 ~/.kube/config
+    - kubectl config use-context momo-store-context
+    # Убедитесь, что Helm может взаимодействовать с кластером
+    - helm repo update
+  script:
+    - helm upgrade --install momo-store-chart my-repo/momo-store --atomic --namespace default --set dockerConfigJson="$DOCKER_CONFIG_JSON"
+  after_script:
+    - rm ~/.kube/config
+  environment:
+    name: production
+    url: http://momo-store.devops-practicum.ru:80
+    auto_stop_in: 1h
+  rules:
+    - when: manual
+
+Must be merged after project is completed.
+
+
+Deploy works and application is available: http://momo-store.gitlab-practicum.ru 
+
+=======================================================
+
+Monitoring
+
+Use utilities available in Yandex Cloud: https://yandex.cloud/ru/docs/managed-kubernetes/metrics
+
+Created Dashboards to monitor pods: https://monitoring.yandex.cloud/folders/b1g3acl1dihgarklvhm3/dashboards/momo-store-dashboard?from=now-1d&to=now&refresh=60000
+
+TBD: Alerting in YC
+
+
+
+
 
 
