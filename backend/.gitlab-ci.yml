@@ -13,6 +13,20 @@ cache:
   paths:
     - ${CI_PROJECT_DIR}/go/pkg/mod
 
+build-artifacts:
+  stage: build
+  image: golang:1.19
+  script:
+    - apt-get update && apt-get install -y gcc musl-dev
+    - mkdir -p /app
+    - cd backend
+    - go mod download
+    - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /app/momo-store ./cmd/api
+    - tar -czvf momo-backend-artifacts.tar.gz -C /app momo-store
+  artifacts:
+    paths:
+      - momo-backend-artifacts.tar.gz
+
 build-backend-code-job:
   stage: build
   image:
@@ -20,17 +34,8 @@ build-backend-code-job:
     entrypoint: [""]
   # переменные CI_REGISTRY_USER, CI_REGISTRY_PASSWORD, CI_REGISTRY генерятся Гитлабом, их задавать не надо
   script:
-    - apt-get update && apt-get install -y --no-cache gcc musl-dev
-    - mkdir -p /app
-    - cd backend
-    - go mod download
-    - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /app/momo-store ./cmd/api
     - /kaniko/executor --context "${CI_PROJECT_DIR}/backend" --dockerfile "${CI_PROJECT_DIR}/backend/dockerfile" --destination "${CI_REGISTRY_IMAGE}/momo-backend:$CI_COMMIT_SHA" --build-arg VERSION=$VERSION --cache=true
-    - tar -czvf backend-artifacts.tar.gz -C /app momo-store
-  artifacts:
-    paths:
-      - momo-backend-artifacts.tar.gz
-
+    
 spotbugs-sast:
   stage: test
   needs:
@@ -105,7 +110,7 @@ upload-to-nexus:
   script:
     - curl -v -u "$NEXUS_REPO_USER:$NEXUS_REPO_PASS" --upload-file frontend-artifacts.tar.gz "${NEXUS_REPO_NAME}/${VERSION}/frontend-artifacts-$VERSION.tar.gz"
   dependencies:
-    - build-backend-code-job
+    - build-artifacts
       #only:
       #  - master
 
