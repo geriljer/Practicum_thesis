@@ -19,12 +19,16 @@ build-artifacts:
   script:
     - apt-get update && apt-get install -y gcc musl-dev
     - mkdir -p /app
+    - ls -la
+    - pwd
     - cd backend
     - go mod download
     - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /app/momo-store ./cmd/api
     - cd /app
     - tar -czvf momo-backend-artifacts.tar.gz -C /app momo-store
+    - pwd
     - ls -la
+      #- mv momo-backend-artifacts.tar.gz /builds/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME/
   artifacts:
     paths:
       - momo-backend-artifacts.tar.gz
