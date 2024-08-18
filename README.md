@@ -161,15 +161,16 @@ ENTRYPOINT ["/app/momo-store"]
 
 ======================================================================================
 
-## Automatization in Gitlab
+## CICD automatization in Gitlab
 
 ---------------------------------
-Build, test and release upload are automated in gitlab.
+Build, test and release upload are automated in gitlab CICD.
 
 Repository: https://gitlab.praktikum-services.ru/std-026-53/momo-store.git
 
-Docker images are uploaded to docker registry gitlab via crane
+Docker images are uploaded to a gitlab docker registry via crane
 
+-------------------------------
 Artifacts are created in a separate job and uploaded to a Nexus Raw repository:
 
 Index of /1-0-1449796
@@ -285,7 +286,10 @@ Purchased domain devops-practicum.ru
 ----------------------------------
 Issued certificates for alev-node1-vm-1.devops-practicum.ru and momo-store.devops-practicum.ru
 
--------------------------------------------------
+======================================
+
+## K8s CLuster
+
 K8s cluster was deployed in Yandex Cloud (step-by-step guide C:\DevOps\Практикум\Дипломный проект\YC_Managed_Cluster)
 
 Source repo: https://github.com/geksogen/k8s_install_yandex_cloud_rke/blob/k8s_cluster_install_ya_cloud/README.md
@@ -294,13 +298,9 @@ Edited main.tf>valut_token and vault_host are taken to variables.tf from environ
 
 Added to variables.tf cloud_id, folder_id, zone, vault_token and vault_host
 
-Nodes are deployed successfully after the changes>terraform init>terraform apply
+Nodes are deployed successfully after the changes>terraform init>terraform apply but Load Balancer couldn't occupy any Public IP address>deployed Managed service for Kubernetes in YC
 
-----------------------------
-K8s cluster deployed in Yandex Cloud (step-by-step guide C:\DevOps\Практикум\Дипломный проект\YC_Managed_Cluster)
-Attempts to deploy hosted k8s cluster were not successful and LoadBalancer couldn't occupy any Public IP
->deployed Managed service for Kubernetes in YC
-
+=========================================
 ## Managed service for Kubernetes
 
 Deployed per documentation: https://yandex.cloud/ru/docs/managed-kubernetes/quickstart
@@ -333,7 +333,8 @@ Created Infrastructure repository: https://gitlab.praktikum-services.ru/std-026-
 Collected pictures in a separate folder
 
 -----------------------------------------------------------
-Kubernetes
+
+# Kubernetes
 
 Performed deploy in Kubernetes via kubectl.
 
@@ -426,13 +427,13 @@ deploy-kubernetes:
     - when: manual
 
 -----------------------------------------------------------
-Helm
+
+# Helm
 
 Configured helm chart and performed deploy via helm chart.
 
 .docker/config.json is added as CICD variable as JSON and is used to create docker-config-secret.
 (It was not possible to pass CICD variable in helm via base64 encoded CICD variable and use --set)
-
 
 Helm pipeline:
 
@@ -503,7 +504,7 @@ deploy-helm:
 Merged to main after the confirmation Application is successfully deployed via new version of helm chart.
 
 ------------------------------------------------------
-Helm releases are stored in Nexus repo: http://nexus.praktikum-services.tech/repository/alexlevashov-helm-026/
+Helm releases are packaged and u[loaded to the Nexus helm repo: http://nexus.praktikum-services.tech/repository/alexlevashov-helm-026/
 
 Index of /momo-store
 
