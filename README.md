@@ -192,10 +192,7 @@ backend-artifacts-1-0-1448758.tar.gz	Wed Aug 14 06:56:04 UTC 2024	7011620
 
 ## Testing:
 
-<<<<<<< HEAD
-----------------------------
-=======
->>>>>>> 9821dd8afc5d9c2145dc0c06a78301d79dd0e86d
+-----------------------------------
 Sonarqube frontend Passed:
 
 https://sonarqube.praktikum-services.ru/dashboard?id=26_AlexLevashov_momo_front
@@ -217,7 +214,7 @@ Deployed a separate Ubuntu VM in YC with Public IP.
 -----------------------
 Deployed VAULT in docker container via Unit file
 
-created script to unseal vault > login vault > yc iam create-token > put it to vault secrets
+created script to unseal vault > login vault > yc iam create-token > put it into vault secrets
 
 added secrets:
 
@@ -289,7 +286,6 @@ Purchased domain devops-practicum.ru
 Issued certificates for alev-node1-vm-1.devops-practicum.ru and momo-store.devops-practicum.ru
 
 -------------------------------------------------
-<<<<<<< HEAD
 K8s cluster was deployed in Yandex Cloud (step-by-step guide C:\DevOps\Практикум\Дипломный проект\YC_Managed_Cluster)
 
 Source repo: https://github.com/geksogen/k8s_install_yandex_cloud_rke/blob/k8s_cluster_install_ya_cloud/README.md
@@ -301,12 +297,8 @@ Added to variables.tf cloud_id, folder_id, zone, vault_token and vault_host
 Nodes are deployed successfully after the changes>terraform init>terraform apply
 
 ----------------------------
-=======
 K8s cluster deployed in Yandex Cloud (step-by-step guide C:\DevOps\Практикум\Дипломный проект\YC_Managed_Cluster)
-
->>>>>>> 9821dd8afc5d9c2145dc0c06a78301d79dd0e86d
 Attempts to deploy hosted k8s cluster were not successful and LoadBalancer couldn't occupy any Public IP
-
 >deployed Managed service for Kubernetes in YC
 
 ## Managed service for Kubernetes
@@ -318,13 +310,7 @@ Deployed external Load Balancer per documentation: https://yandex.cloud/ru/docs/
 
 Configured port-forwarding for LoadBalancer: 
 
-<<<<<<< HEAD
-create values.yml to enable port-forward for backend: https://yandex.cloud/ru/docs/managed-kubernetes/operations/create-load-balancer-with-ingress-nginx#port-forwarding
-=======
-create values.yml to enable port-forward for backend: https://yandex.cloud/ru/docs/managed-kubernetes/operations/
-
-create-load-balancer-with-ingress-nginx#port-forwarding
->>>>>>> 9821dd8afc5d9c2145dc0c06a78301d79dd0e86d
+created values.yml to enable port-forward for backend: https://yandex.cloud/ru/docs/managed-kubernetes/operations/create-load-balancer-with-ingress-nginx#port-forwarding
 
 tcp: {8081: "default/backend:8081"}
 
@@ -333,29 +319,23 @@ portNamePrefix: "momo"
 -----------------------------
 Installed Loki: https://yandex.cloud/ru/docs/managed-kubernetes/operations/applications/loki
 
-<<<<<<< HEAD
 ------------------------------
 Installed Prometheus Grafana: https://yandex.cloud/ru/docs/managed-kubernetes/operations/applications/prometheus-operator?utm_referrer=https%3A%2F%2Fyandex.cloud%2Fru%2Fdocs%2Fapplication-load-balancer%2Fconcepts%2Fapplication-load-balancer
-=======
-Installed Prometheus Grafana: https://yandex.cloud/ru/docs/managed-kubernetes/operations/applications/prometheus-operator?
-
-utm_referrer=https%3A%2F%2Fyandex.cloud%2Fru%2Fdocs%2Fapplication-load-balancer%2Fconcepts%2Fapplication-load-balancer
->>>>>>> 9821dd8afc5d9c2145dc0c06a78301d79dd0e86d
-
 
 ========================================================================================
 
 ## Deploy.
 
 ---------------------------------
-Created Infrastructure repository:
+Created Infrastructure repository: https://gitlab.praktikum-services.ru/std-026-53/momo-infrastructure/
 
-https://gitlab.praktikum-services.ru/std-026-53/momo-infrastructure/
-
+-------------------------------------
 Collected pictures in a separate folder
 
 -----------------------------------------------------------
-Performed deploy in Kubernetes. Created a separate branch. After project is completed must be merged to main.
+Kubernetes
+
+Performed deploy in Kubernetes via kubectl.
 
 Kubernetes pipeline:
 
@@ -446,14 +426,13 @@ deploy-kubernetes:
     - when: manual
 
 -----------------------------------------------------------
-<<<<<<< HEAD
+Helm
+
 Configured helm chart and performed deploy via helm chart.
 
 .docker/config.json is added as CICD variable as JSON and is used to create docker-config-secret.
 (It was not possible to pass CICD variable in helm via base64 encoded CICD variable and use --set)
-=======
-Configured helm chart and performed deploy via helm chart:
->>>>>>> 9821dd8afc5d9c2145dc0c06a78301d79dd0e86d
+
 
 Helm pipeline:
 
@@ -461,15 +440,7 @@ deploy-helm:
 
   stage: deploy
 
-<<<<<<< HEAD
-image: alpine/helm:3.9.4
-
-#image: vault:1.11.3
-=======
   image: alpine/helm:3.9.4
-
-    #image: vault:1.11.3
->>>>>>> 9821dd8afc5d9c2145dc0c06a78301d79dd0e86d
 
   before_script:
 
@@ -500,11 +471,16 @@ image: alpine/helm:3.9.4
     - helm repo update
 
   script:
+    
+    #remove secret to avoid conflict because of secret already exists
 
-<<<<<<< HEAD
     - kubectl delete secret docker-config-secret --namespace default
 
+    #create docker-config-secret via kubectl>use CICD variable DOCKER_CONFIG_JSON
+
     - kubectl create secret generic docker-config-secret --namespace default  --from-literal=.dockerconfigjson="$DOCKER_CONFIG_JSON" --type=kubernetes.io/dockerconfigjson
+
+    #install application from the latest version of the helm chart from the Helm repo located in Nexus
 
     - helm upgrade --install momo-store-chart my-repo/momo-store --atomic --namespace default
 
@@ -522,25 +498,6 @@ image: alpine/helm:3.9.4
 
   rules:
 
-=======
-    - helm upgrade --install momo-store-chart my-repo/momo-store --atomic --namespace default --set 
-    dockerConfigJson="$DOCKER_CONFIG_JSON"
-  
-  after_script:
-  
-    - rm ~/.kube/config
-  
-  environment:
-  
-    name: production
-  
-    url: http://momo-store.devops-practicum.ru:80
-  
-    auto_stop_in: 1h
-  
-  rules:
-  
->>>>>>> 9821dd8afc5d9c2145dc0c06a78301d79dd0e86d
     - when: manual
 
 Merged to main after the confirmation Application is successfully deployed via new version of helm chart.
@@ -570,7 +527,7 @@ Use utilities available in Yandex Cloud: https://yandex.cloud/ru/docs/managed-ku
 
 Created Dashboards to monitor pods: https://monitoring.yandex.cloud/folders/b1g3acl1dihgarklvhm3/dashboards/momo-store-dashboard?from=now-1d&to=now&refresh=60000
 
-TBD: Alerting in YC
+Alerting in YC
 
 
 
